@@ -4,7 +4,6 @@ require './lib/route_recognizer.rb'
 Result = Struct.new(:route, :controller, :action, :params, :error)
 
 class RouteRecognizerApp < Sinatra::Base
-
   get '/' do
     @router = RouteRecognizer.new('')
     @result = nil
@@ -18,6 +17,7 @@ class RouteRecognizerApp < Sinatra::Base
     @is_post = %w(POST PUT PATCH).include?(method)
     @result.route = "#{method} #{params[:route_uri]}"
     logger.info %Q{::#{@result.route}::#{@routes.gsub("\n"," ; ")}}
+    
     begin
       @router = RouteRecognizer.new(@routes)
       result_params = @router.recognize(params[:route_method], params[:route_uri])
@@ -29,6 +29,10 @@ class RouteRecognizerApp < Sinatra::Base
     rescue RouteRecognizer::InvalidRoutesError => e
       @result.error = "can't be parsed because your routes table (top of page) seems to contain an error: #{e.message}"
     end
+
     erb :main
   end
+
+  # This ensures the app starts when executed directly
+  run! if __FILE__ == $0
 end
